@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	dbURL := os.Getenv("DATABASE_URL")

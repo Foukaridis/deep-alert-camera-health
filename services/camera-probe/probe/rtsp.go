@@ -49,8 +49,6 @@ func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.Ca
 	}
 	defer client.Close()
 
-	log.Debug().Int("camera_id", camera.ID).Msg("handshake started")
-
 	desc, _, err := client.Describe(url)
 	if err != nil {
 		event.Healthy = false
@@ -61,7 +59,6 @@ func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.Ca
 
 	frameCh := make(chan struct{}, 1)
 	client.OnPacketRTPAny(func(m *description.Media, f format.Format, pkt *rtp.Packet) {
-		log.Debug().Int("camera_id", camera.ID).Msg("DEBUG: Received RTP packet!")
 		select {
 		case frameCh <- struct{}{}:
 		default:
@@ -84,15 +81,19 @@ func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.Ca
 		return event
 	}
 
-	log.Debug().Int("camera_id", camera.ID).Msg("playing, waiting for frames...")
+	// For production, ensure we wait at least 10s for slow-starting streams
+	waitTimeout := timeout
+	if waitTimeout < 10*time.Second {
+		waitTimeout = 10 * time.Second
+	}
 
 	select {
 	case <-frameCh:
 		event.Healthy = true
-	case <-time.After(timeout):
+	case <-time.After(waitTimeout):
 		event.Healthy = false
 		event.ErrorCategory = model.ErrNoFrames
-		event.Error = "no video frames received within timeout"
+		event.Error = fmt.Sprintf("no video frames received within %v timeout", waitTimeout)
 	case <-ctx.Done():
 		event.Healthy = false
 		event.ErrorCategory = model.ErrTimeout
