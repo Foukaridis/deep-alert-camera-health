@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Wait for emulator
-until $(nc -z pubsub-emulator 8085); do
+until curl -s http://pubsub-emulator:8085/ > /dev/null; do
   echo "Waiting for Pub/Sub emulator..."
   sleep 1
 done
