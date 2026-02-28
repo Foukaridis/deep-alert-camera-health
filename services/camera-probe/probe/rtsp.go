@@ -12,8 +12,8 @@ import (
 	"github.com/pion/rtp"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/db"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/model"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/db"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/model"
 )
 
 func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.CameraStatusEvent {

@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/handler"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/subscriber"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/handler"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/subscriber"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/model"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/model"
 )
 
 type DatabaseHandler struct {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/model"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/model"
 )
 
 type Publisher struct {

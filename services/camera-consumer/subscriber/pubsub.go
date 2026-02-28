@@ -7,8 +7,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/rs/zerolog/log"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/handler"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/model"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/handler"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/model"
 )
 
 func Start(ctx context.Context, projectID, subID string, handlers ...handler.Handler) error {

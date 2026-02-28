@@ -11,9 +11,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/db"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/probe"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-probe/publisher"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/db"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/probe"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/publisher"
 )
 
 func main() {

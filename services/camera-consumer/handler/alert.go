@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/rs/zerolog/log"
-	"github.com/Foukaridis/deepalert-camera-health/services/camera-consumer/model"
+	"github.com/Foukaridis/deep-alert-camera-health/services/camera-consumer/model"
 )
 
 type AlertHandler struct {
