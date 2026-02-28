@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -14,12 +16,21 @@ import (
 )
 
 func main() {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	log.Logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+	log.Info().Msg("camera-consumer starting")
+
 	dbURL := os.Getenv("DATABASE_URL")
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	subID := os.Getenv("PUBSUB_SUBSCRIPTION")
 
 	log.Info().Msg("camera-consumer starting")
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	// Ensure DB table exists
-	ctxInit, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctxInit, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if err := initDB(ctxInit, dbURL); err != nil {
 		log.Error().Err(err).Msg("failed to init database tables")

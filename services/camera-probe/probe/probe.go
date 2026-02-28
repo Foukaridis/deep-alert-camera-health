@@ -6,7 +6,6 @@ import (
 
 	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/db"
 	"github.com/Foukaridis/deep-alert-camera-health/services/camera-probe/model"
-	"github.com/rs/zerolog/log"
 )
 
 func RunTick(ctx context.Context, cameras []db.Camera, concurrency, timeout int) []model.CameraStatusEvent {

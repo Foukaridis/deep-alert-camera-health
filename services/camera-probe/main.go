@@ -17,8 +17,9 @@ import (
 )
 
 func main() {
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log.Logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+	log.Info().Msg("camera-probe starting")
 
 	dbURL := os.Getenv("DATABASE_URL")
 	projectID := os.Getenv("GCP_PROJECT_ID")

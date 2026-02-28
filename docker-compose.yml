@@ -1,63 +1,93 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:15-alpine
+    image: murrayinglis/da-tech-test-db:latest
+    platform: linux/arm64 #stop looking for amd64 manifest
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
-    image: bluenviron/mediamtx:latest-ffmpeg
+    image: murrayinglis/da-tech-test:latest
+    platform: linux/arm64 #stop looking for amd64 manifest
+    environment:
+      PORT: 8080
     ports:
+      - "8080:8080"
       - "8554:8554"
-      - "8888:8888"
+    depends_on:
+      db:
+        condition: service_healthy
 
   pubsub-emulator:
-    image: google/cloud-sdk:emulators
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
     command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
     ports:
       - "8085:8085"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/v1/projects/deepalert-local/topics" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   pubsub-init:
-    image: alpine:3.19
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
     depends_on:
       pubsub-emulator:
-        condition: service_started
-    volumes:
-      - ./scripts:/scripts
-    entrypoint: [ "/bin/sh", "/scripts/pubsub-init.sh" ]
-    environment:
-      PUBSUB_EMULATOR_HOST: pubsub-emulator:8085
-
-  camera-probe:
-    build: ./services/camera-probe
-    depends_on:
-      db:
         condition: service_healthy
-      pubsub-init:
-        condition: service_completed_successfully
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/postgres
       PUBSUB_EMULATOR_HOST: pubsub-emulator:8085
       GCP_PROJECT_ID: deepalert-local
       PUBSUB_TOPIC: camera-health-events
+      PUBSUB_SUBSCRIPTION: camera-health-events-sub
+    volumes:
+      - ./scripts:/scripts
+    entrypoint: [ "bash", "/scripts/pubsub-init.sh" ]
 
-  camera-consumer:
-    build: ./services/camera-consumer
+  camera-probe:
+    build:
+      context: ./services/camera-probe
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      PUBSUB_EMULATOR_HOST: pubsub-emulator:8085
+      GCP_PROJECT_ID: deepalert-local
+      PUBSUB_TOPIC: camera-health-events
+      PROBE_INTERVAL_SECONDS: "60"
+      RTSP_TIMEOUT_SECONDS: "5"
+      PROBE_CONCURRENCY: "10"
     depends_on:
       db:
         condition: service_healthy
       pubsub-init:
         condition: service_completed_successfully
+    restart: unless-stopped
+
+  camera-consumer:
+    build:
+      context: ./services/camera-consumer
+      dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/postgres
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
       PUBSUB_EMULATOR_HOST: pubsub-emulator:8085
       GCP_PROJECT_ID: deepalert-local
+      PUBSUB_TOPIC: camera-health-events
       PUBSUB_SUBSCRIPTION: camera-health-events-sub
+    depends_on:
+      db:
+        condition: service_healthy
+      pubsub-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  db-data:
