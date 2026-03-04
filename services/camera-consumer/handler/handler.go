@@ -10,10 +10,13 @@ type Handler interface {
 }
 
 func RunChain(ctx context.Context, event model.CameraStatusEvent, handlers ...Handler) error {
+	var firstErr error
 	for _, h := range handlers {
 		if err := h.Handle(ctx, event); err != nil {
-			return err
+			if firstErr == nil {
+				firstErr = err
+			}
 		}
 	}
-	return nil
+	return firstErr
 }

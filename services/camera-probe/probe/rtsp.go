@@ -3,6 +3,8 @@ package probe
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/bluenviron/gortsplib/v4"
@@ -24,7 +26,16 @@ func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.Ca
 		CheckedAt:  start,
 	}
 
-	url, err := base.ParseURL(camera.RTSPURL)
+	// Dynamic RTSP Hostmapping: Replace 'localhost' with 'API_HOST' if set
+	// This allows the probe to connect to the 'api' container in Docker without 
+	// modifying the database records.
+	rtspURL := camera.RTSPURL
+	apiHost := os.Getenv("API_HOST")
+	if apiHost != "" {
+		rtspURL = strings.Replace(rtspURL, "localhost", apiHost, 1)
+	}
+
+	url, err := base.ParseURL(rtspURL)
 	if err != nil {
 		event.Healthy = false
 		event.ErrorCategory = model.ErrURLParse
@@ -32,7 +43,7 @@ func CheckCamera(ctx context.Context, camera db.Camera, timeoutSec int) model.Ca
 		return event
 	}
 
-	log.Debug().Int("camera_id", camera.ID).Str("url", camera.RTSPURL).Msg("starting probe")
+	log.Debug().Int("camera_id", camera.ID).Str("url", rtspURL).Msg("starting probe")
 
 	timeout := time.Duration(timeoutSec) * time.Second
 	client := gortsplib.Client{

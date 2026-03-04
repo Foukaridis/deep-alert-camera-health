@@ -29,11 +29,26 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// Ensure DB table exists
-	ctxInit, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	if err := initDB(ctxInit, dbURL); err != nil {
-		log.Error().Err(err).Msg("failed to init database tables")
+	// Ensure DB table exists with retries
+	// This helps handle race conditions where the database is still starting up.
+	var initErr error
+	for i := 0; i < 5; i++ {
+		ctxInit, cancel := context.WithTimeout(ctx, 3*time.Second)
+		if initErr = initDB(ctxInit, dbURL); initErr == nil {
+			cancel()
+			break
+		}
+		cancel()
+		log.Warn().Err(initErr).Msgf("failed to init database tables, retrying in 5s... (%d/5)", i+1)
+		select {
+		case <-time.After(5 * time.Second):
+		case <-ctx.Done():
+			log.Fatal().Msg("interrupted during database initialization")
+		}
+	}
+
+	if initErr != nil {
+		log.Error().Err(initErr).Msg("failed to init database tables after retries")
 	}
 
 	logHandler := &handler.LogHandler{}
