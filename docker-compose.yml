@@ -1,7 +1,7 @@
 services:
   db:
     image: murrayinglis/da-tech-test-db:latest
-    platform: linux/arm64 #stop looking for amd64 manifest
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -18,7 +18,7 @@ services:
 
   api:
     image: murrayinglis/da-tech-test:latest
-    platform: linux/arm64 #stop looking for amd64 manifest
+
     environment:
       PORT: 8080
     ports:
